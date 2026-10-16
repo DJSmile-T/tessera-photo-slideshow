@@ -2,7 +2,7 @@
 
 ![Photo slideshow on Tessera screens](store.png)
 
-Your own photos (a holiday, the kids, the dog) large on a Tessera screen. Home Assistant picks a photo every few
+Your own photos (a holiday, the kids, the dog) on a Tessera screen. Home Assistant picks a photo every few
 minutes; the tile shows it, slides it away when the next one comes, and a tap on the tile asks for the next photo at
 once. The caption at the bottom says the album and which photo of how many ("Holiday · 12/148").
 
