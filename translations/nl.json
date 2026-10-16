@@ -1,5 +1,7 @@
 {
-  "_meta": { "name": "Nederlands" },
+  "_meta": {
+    "name": "Nederlands"
+  },
   "screen": {
     "choose": "Kies de diavoorstelling-sensor",
     "no_photo": "Nog geen foto",
@@ -17,6 +19,8 @@
     "caption": "Onderschrift",
     "caption_hint": "Het onderschrift van de sensor (het album, de plek) onderaan de foto.",
     "slide": "Schuiven",
-    "slide_hint": "De foto schuift weg als de volgende komt."
+    "slide_hint": "De foto schuift weg als de volgende komt.",
+    "interval": "Seconden tussen foto's",
+    "interval_hint": "0: Home Assistant bepaalt het tempo (de wisseltijd van de diavoorstelling). Anders vraagt dit scherm na zoveel seconden om de volgende foto, minstens 5; hangen er meer schermen aan één sensor, dan krijgen ze allemaal de nieuwe foto."
   }
 }

@@ -28,9 +28,10 @@ input_button:
 
 input_number:
   slideshow_interval:
+    # 0: Home Assistant does not change the photo by itself; the tile's "Seconds between photos" or a tap does.
     name: Slideshow interval (minutes)
     icon: mdi:timer-outline
-    min: 1
+    min: 0
     max: 60
     step: 1
     initial: 2
@@ -60,8 +61,9 @@ template:
         value_template: >-
           {% set last = states.sensor.slideshow_photo.last_changed
              if states.sensor.slideshow_photo is not none else none %}
+          {% set minutes = states('input_number.slideshow_interval') | float(2) %}
           {{ trigger.id != 'clock' or last is none
-             or (now() - last).total_seconds() >= (states('input_number.slideshow_interval') | float(2)) * 60 - 5 }}
+             or (minutes > 0 and (now() - last).total_seconds() >= minutes * 60 - 5) }}
     actions:
       # Pick once; the state and the caption use the same pick.
       - variables:

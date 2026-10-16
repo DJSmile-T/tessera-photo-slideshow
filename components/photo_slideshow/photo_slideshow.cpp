@@ -28,6 +28,9 @@ class SlideshowTile : public tessera::Tile {
     contain_ = std::string(c.options["fit"] | "cover") == "contain";
     caption_on_ = c.options["caption"] | true;
     slide_ = c.options["slide"] | true;
+    // Seconds between photos as this screen counts them; 0 leaves the pace to Home Assistant.
+    const int every = c.options["interval"] | 0;
+    interval_ = every > 0 ? static_cast<uint32_t>(std::max(every, 5)) : 0;
 
     if (ui::pictures()) {
       place_ = ui::picture(c.parent);
@@ -62,22 +65,30 @@ class SlideshowTile : public tessera::Tile {
   }
 
   // The change of photo happens here, in a call of the tile, so the slide goes with it.
-  void on_tick(uint32_t) override {
+  void on_tick(uint32_t epoch) override {
     if (!place_) return;
     if (!(wanted_ == shown_)) {
       if (slide_ && !shown_.empty() && !slid_) ui::slide_pictures(-width_, 400);
       ui::set_picture(place_, roomy::plain(wanted_), contain_ ? tessera::Fit::CONTAIN : tessera::Fit::COVER);
       shown_ = wanted_;
       slid_ = false;
+      since_ = epoch;   // every new photo, from the clock, a tap or Home Assistant, starts the count again
+    }
+    // The tile's own pace: after `interval_` seconds on the glass, the next photo, as a tap asks for it. Counted only
+    // while the card is on the glass (on_tick runs then), and again from now when the ask did not go out.
+    if (interval_ && epoch && !shown_.empty()) {
+      if (!since_ || epoch < since_) since_ = epoch;
+      if (epoch - since_ >= interval_) {
+        press_next_();
+        since_ = epoch;
+      }
     }
     ui::set_text(message_, wait_.empty() ? "" : plugin_->text(wait_.c_str()));
     show_caption_(wanted_.empty() || !caption_on_ ? "" : roomy::plain(caption_text_));
   }
 
   void on_tap() override {
-    const std::string button = roomy::plain(next_button_);
-    if (button.rfind("input_button.", 0) != 0) return;
-    if (tessera::action("input_button.press", button) && place_ && slide_ && !shown_.empty() && !slid_) {
+    if (press_next_() && place_ && slide_ && !shown_.empty() && !slid_) {
       ui::slide_pictures(-width_, 300);   // away at once; the next photo comes in when Home Assistant has picked it
       slid_ = true;
     }
@@ -90,6 +101,13 @@ class SlideshowTile : public tessera::Tile {
   }
 
  private:
+  // Presses the sensor's next_button: Home Assistant picks another photo. False when there is none, or it did not go.
+  bool press_next_() {
+    const std::string button = roomy::plain(next_button_);
+    if (button.rfind("input_button.", 0) != 0) return false;
+    return tessera::action("input_button.press", button);
+  }
+
   // The caption in its band at the bottom left, as wide as its words; nothing at all for no words.
   void show_caption_(const std::string &words) {
     if (!caption_) return;
@@ -111,6 +129,7 @@ class SlideshowTile : public tessera::Tile {
   const tessera::Plugin *plugin_;
   int width_ = 0, height_ = 0;
   bool contain_ = false, caption_on_ = true, slide_ = true, slid_ = false;
+  uint32_t interval_ = 0, since_ = 0;
   tessera::Text wanted_, shown_, caption_text_, next_button_, wait_;   // PSRAM first (docs/FIRMWARE_API.md, "Memory")
   lv_obj_t *place_{}, *band_{}, *caption_{}, *message_{};
 };

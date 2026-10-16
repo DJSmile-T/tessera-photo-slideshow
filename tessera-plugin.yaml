@@ -4,7 +4,7 @@
 # asks for the next.
 # Every field is explained in docs/MANIFEST.md of the plugins repository.
 id: photo_slideshow
-version: 0.1.1
+version: 0.2.0
 api: "0.10"
 icon: image
 maintainer: DJSmile-T
@@ -17,7 +17,8 @@ boards: any
 flash_kb: 6
 
 permissions:
-  # A tap presses the button the sensor names in its attribute next_button: Home Assistant picks the next photo.
+  # A tap, and the tile's own interval, press the button the sensor names in its attribute next_button: Home
+  # Assistant picks the next photo.
   home_assistant_actions: [input_button.press]
 
 tiles:
@@ -39,3 +40,5 @@ tiles:
           choices: [{ value: cover, label: fit_cover }, { value: contain, label: fit_contain }] }
       - { id: caption, kind: toggle, label: caption, hint: caption_hint, default: true }
       - { id: slide, kind: toggle, label: slide, hint: slide_hint, default: true }
+      - { id: interval, kind: number, label: interval, hint: interval_hint, default: 0, min: 0, max: 3600, step: 5,
+          unit: s }

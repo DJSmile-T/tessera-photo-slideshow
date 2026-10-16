@@ -47,12 +47,16 @@ Supervisor, which passes `/api/...` on but not the `www` folder (`/local/...`).
    builds once.
 6. In Layout, place the **Slideshow** tile from the library's Plugins group, as large as you like, and choose
    `sensor.slideshow_photo` as its entity. The editor shows the caption only; the photo shows on the screen itself.
-7. In the inspector: **Fit** (cover fills the tile, contain shows the whole photo), **Caption** and **Slide**.
+7. In the inspector: **Fit** (cover fills the tile, contain shows the whole photo), **Caption**, **Slide** and
+   **Seconds between photos** (0 leaves the pace to Home Assistant; otherwise the screen asks for the next photo every
+   so many seconds, at least 5).
 8. For a tap to give the next photo, allow the screen to perform Home Assistant actions: Settings → Devices &
    services → ESPHome → the screen → Configure.
 
-How often the photo changes is `input_number.slideshow_interval` (minutes), and the album in the caption is
-`input_text.slideshow_album`. Both are in Home Assistant: change them without building the screen.
+Without seconds on the tile, the photo changes every `input_number.slideshow_interval` minutes; set that to 0 when the
+tile keeps the pace, so Home Assistant changes the photo only when a screen asks. The album in the caption is
+`input_text.slideshow_album`. Both are in Home Assistant: change them without building the screen. With several
+screens on one sensor, every screen shows the same photo, and each screen that keeps a pace moves them all on.
 
 ## Photos from Immich
 

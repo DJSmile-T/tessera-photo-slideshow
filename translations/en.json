@@ -1,5 +1,7 @@
 {
-  "_meta": { "name": "English" },
+  "_meta": {
+    "name": "English"
+  },
   "screen": {
     "choose": "Choose the slideshow sensor",
     "no_photo": "No photo yet",
@@ -17,6 +19,8 @@
     "caption": "Caption",
     "caption_hint": "The sensor's caption (the album, the place) at the bottom of the photo.",
     "slide": "Slide",
-    "slide_hint": "The photo slides away when the next one comes."
+    "slide_hint": "The photo slides away when the next one comes.",
+    "interval": "Seconds between photos",
+    "interval_hint": "0: Home Assistant sets the pace (its slideshow interval). Otherwise this screen asks for the next photo after so many seconds, at least 5; with several screens on one sensor, every screen gets the new photo."
   }
 }

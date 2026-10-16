@@ -36,12 +36,15 @@ de app als add-on via de Supervisor met Home Assistant praat, en die geeft `/api
    scherm bouwt één keer.
 6. Zet in Layout de tegel **Diavoorstelling** uit de groep Plugins neer, zo groot als je wilt, en kies
    `sensor.slideshow_photo` als entiteit. De editor toont alleen het onderschrift; de foto zie je op het scherm zelf.
-7. In de inspector: **Passen** (vullen of passend), **Onderschrift** en **Schuiven**.
+7. In de inspector: **Passen** (vullen of passend), **Onderschrift**, **Schuiven** en **Seconden tussen foto's** (0
+   laat het tempo aan Home Assistant; anders vraagt het scherm elke zoveel seconden om de volgende foto, minstens 5).
 8. Wil je dat een tik de volgende foto geeft, laat het scherm dan Home Assistant-acties uitvoeren: Instellingen →
    Apparaten & diensten → ESPHome → het scherm → Configureren.
 
-Hoe vaak de foto wisselt is `input_number.slideshow_interval` (minuten), het album in het onderschrift
-`input_text.slideshow_album`. Beide staan in Home Assistant: aanpassen zonder het scherm te bouwen.
+Zonder seconden op de tegel wisselt de foto elke `input_number.slideshow_interval` minuten; zet die op 0 als de tegel
+het tempo bepaalt, dan wisselt Home Assistant alleen als een scherm erom vraagt. Het album in het onderschrift is
+`input_text.slideshow_album`. Beide staan in Home Assistant: aanpassen zonder het scherm te bouwen. Hangen er meer
+schermen aan één sensor, dan tonen ze allemaal dezelfde foto, en elk scherm met een eigen tempo zet ze allemaal door.
 
 ## Foto's uit Immich
 
