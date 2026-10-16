@@ -1,5 +1,7 @@
 # Fotodiavoorstelling
 
+![Fotodiavoorstelling op Tessera-schermen](store.png)
+
 Je eigen foto's (een vakantie, de kinderen, de hond) groot op een Tessera-scherm. Home Assistant kiest om de paar
 minuten een foto; de tegel toont hem, schuift hem weg als de volgende komt, en een tik op de tegel vraagt meteen om de
 volgende. Het onderschrift onderaan noemt het album en welke foto van hoeveel ("Vakantie · 12/148").
