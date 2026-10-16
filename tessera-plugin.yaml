@@ -1,0 +1,41 @@
+# Photo slideshow: your own photos (a holiday, the kids, the dog) large on a tile. Home Assistant picks the photo: a
+# template sensor whose state is the photo's address (an image entity, /api/image_proxy/...), a new one every few
+# minutes (homeassistant/photo_slideshow.yaml). The tile shows it, slides to the next one when it changes, and a tap
+# asks for the next.
+# Every field is explained in docs/MANIFEST.md of the plugins repository.
+id: photo_slideshow
+version: 0.1.1
+api: "0.10"
+icon: image
+maintainer: DJSmile-T
+license: MIT
+stage: beta
+topics: [photos]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 6
+
+permissions:
+  # A tap presses the button the sensor names in its attribute next_button: Home Assistant picks the next photo.
+  home_assistant_actions: [input_button.press]
+
+tiles:
+  - id: slideshow
+    name: tile_name
+    icon: image
+    sizes: { min: 1x1, max: 9x9 }
+    memory: 600
+    # One place for the photo. A board without the memory for pictures says so instead.
+    pictures: 1
+    # The slideshow sensor of Home Assistant (README, "Set up"): its state is the photo's address.
+    domains: [sensor]
+    attributes: [caption, next_button]
+    has_attributes: [next_button]
+    example: tile_example
+    preview: { title: "{caption}" }
+    options:
+      - { id: fit, kind: choice, label: fit, hint: fit_hint, default: cover,
+          choices: [{ value: cover, label: fit_cover }, { value: contain, label: fit_contain }] }
+      - { id: caption, kind: toggle, label: caption, hint: caption_hint, default: true }
+      - { id: slide, kind: toggle, label: slide, hint: slide_hint, default: true }

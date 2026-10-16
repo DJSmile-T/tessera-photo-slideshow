@@ -1,0 +1,22 @@
+{
+  "_meta": { "name": "Nederlands" },
+  "screen": {
+    "choose": "Kies de diavoorstelling-sensor",
+    "no_photo": "Nog geen foto",
+    "no_pictures": "Dit scherm toont geen foto's"
+  },
+  "app": {
+    "name": "Fotodiavoorstelling",
+    "summary": "Je eigen foto's groot op het scherm, om de paar minuten een nieuwe; tik voor de volgende.",
+    "tile_name": "Diavoorstelling",
+    "tile_example": "Vakantiefoto's, de een na de ander",
+    "fit": "Passen",
+    "fit_hint": "Vullen vult de tegel en snijdt af wat over is; passend toont de hele foto.",
+    "fit_cover": "Vullen",
+    "fit_contain": "Passend",
+    "caption": "Onderschrift",
+    "caption_hint": "Het onderschrift van de sensor (het album, de plek) onderaan de foto.",
+    "slide": "Schuiven",
+    "slide_hint": "De foto schuift weg als de volgende komt."
+  }
+}

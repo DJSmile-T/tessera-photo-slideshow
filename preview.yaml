@@ -1,0 +1,26 @@
+# What tools/preview.py shows (docs/PREVIEW.md): the slideshow sensor with a holiday photo, the whole photo with
+# contain, and a sensor without a photo yet. The pictures come from the files below, never from the internet.
+tiles:
+  - tile: slideshow
+    name: Holiday
+    entity: sensor.slideshow_photo
+  - tile: slideshow
+    name: Whole photo
+    entity: sensor.slideshow_photo
+    options: { fit: contain, caption: false }
+    sizes: [2x2]
+  - tile: slideshow
+    name: Waiting
+    entity: sensor.slideshow_empty
+    sizes: [2x1]
+
+states:
+  sensor.slideshow_photo:
+    state: /api/image_proxy/image.slideshow_photo?v=IMG_0412
+    attributes: { friendly_name: Slideshow photo, caption: "Holiday · 12/148", next_button: input_button.slideshow_next }
+  sensor.slideshow_empty:
+    state: unknown
+    attributes: { friendly_name: Slideshow empty, caption: "", next_button: input_button.slideshow_next }
+
+pictures:
+  "/api/image_proxy/image.slideshow_photo?v=IMG_0412": preview/holiday.jpg

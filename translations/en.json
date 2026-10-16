@@ -1,0 +1,22 @@
+{
+  "_meta": { "name": "English" },
+  "screen": {
+    "choose": "Choose the slideshow sensor",
+    "no_photo": "No photo yet",
+    "no_pictures": "This screen shows no photos"
+  },
+  "app": {
+    "name": "Photo slideshow",
+    "summary": "Your own photos large on the screen, a new one every few minutes; tap for the next.",
+    "tile_name": "Slideshow",
+    "tile_example": "Holiday photos, one after another",
+    "fit": "Fit",
+    "fit_hint": "Cover fills the tile and cuts away what is over; contain shows the whole photo.",
+    "fit_cover": "Cover",
+    "fit_contain": "Contain",
+    "caption": "Caption",
+    "caption_hint": "The sensor's caption (the album, the place) at the bottom of the photo.",
+    "slide": "Slide",
+    "slide_hint": "The photo slides away when the next one comes."
+  }
+}

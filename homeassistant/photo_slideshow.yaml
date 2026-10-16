@@ -1,0 +1,102 @@
+# Photo slideshow for Tessera — Home Assistant package
+#
+# Picks a photo from /config/www/slideshow every few minutes and offers it as an image entity, which the Tessera
+# plugin's tile shows (and which Tessera's screensaver can show too).
+#
+# Put this file in /config/packages/ and make sure configuration.yaml loads packages and allows the folder:
+#
+#   homeassistant:
+#     packages: !include_dir_named packages
+#     allowlist_external_dirs:
+#       - /config/www/slideshow
+#
+# Create the folder /config/www/slideshow first. Photos: JPG or PNG, each under 4 MB (see the README).
+#
+# >>> CHANGE ME: the address of THIS Home Assistant as your browser reaches it, without a / at the end, in
+#     image.slideshow_photo below (search for "homeassistant.local"). Home Assistant fetches the photo from itself.
+
+sensor:
+  # The Folder sensor has no setup in the UI: the list of files in the folder (attribute file_list).
+  - platform: folder
+    folder: /config/www/slideshow
+    filter: "*.*"
+
+input_button:
+  slideshow_next:
+    name: Slideshow next photo
+    icon: mdi:skip-next
+
+input_number:
+  slideshow_interval:
+    name: Slideshow interval (minutes)
+    icon: mdi:timer-outline
+    min: 1
+    max: 60
+    step: 1
+    initial: 2
+    mode: box
+
+input_text:
+  slideshow_album:
+    name: Slideshow album name
+    icon: mdi:image-album
+    initial: Holiday
+    max: 30
+
+template:
+  - triggers:
+      # Every minute: is the interval up? And at once when the screen's tile is tapped (the button).
+      - trigger: time_pattern
+        minutes: "/1"
+        id: clock
+      - trigger: state
+        entity_id: input_button.slideshow_next
+        id: button
+      - trigger: homeassistant
+        event: start
+        id: start
+    conditions:
+      - condition: template
+        value_template: >-
+          {% set last = states.sensor.slideshow_photo.last_changed
+             if states.sensor.slideshow_photo is not none else none %}
+          {{ trigger.id != 'clock' or last is none
+             or (now() - last).total_seconds() >= (states('input_number.slideshow_interval') | float(2)) * 60 - 5 }}
+    actions:
+      # Pick once; the state and the caption use the same pick.
+      - variables:
+          photos: >-
+            {{ (state_attr('sensor.slideshow', 'file_list') or [])
+               | select('search', '(?i)\\.(jpe?g|png)$') | sort | list }}
+          current: >-
+            {{ (state_attr('sensor.slideshow_photo', 'file') or '') | replace('/local/', '/config/www/') | replace('%20', ' ') }}
+          pick: >-
+            {% set rest = photos | reject('eq', current) | list %}
+            {% set rest = rest if rest | count > 0 else photos %}
+            {{ rest | random if rest | count > 0 else '' }}
+    sensor:
+      - name: Slideshow photo
+        unique_id: tessera_slideshow_photo
+        icon: mdi:image
+        # The address Tessera fetches the photo from: the image entity below. It is under /api/ because the Tessera
+        # add-on reaches Home Assistant through the Supervisor, which does not pass /local/ on. ?v= differs for every
+        # photo, so the app fetches each one instead of showing one it keeps. Random, never the same twice in a row.
+        state: >-
+          {% if pick %}/api/image_proxy/image.slideshow_photo?v={{ pick.split('/')[-1].rsplit('.', 1)[0][:60] | urlencode }}{% else %}unknown{% endif %}
+        attributes:
+          # The file itself (/local/... is /config/www/...).
+          file: >-
+            {{ pick | replace('/config/www/', '/local/') | replace(' ', '%20') if pick else '' }}
+          # The caption on the photo: the album and which photo of how many.
+          caption: >-
+            {{ states('input_text.slideshow_album') }}{% if pick in photos %} · {{ photos.index(pick) + 1 }}/{{ photos | count }}{% endif %}
+          # What the screen presses on a tap.
+          next_button: input_button.slideshow_next
+
+  # The photo as an image entity, served at /api/image_proxy/image.slideshow_photo. Home Assistant fetches the file
+  # from its own www folder: CHANGE the address to this Home Assistant's own (http://192.168.1.10:8123, say).
+  - image:
+      - name: Slideshow photo
+        unique_id: tessera_slideshow_photo_image
+        url: >-
+          {{ 'http://homeassistant.local:8123' ~ (state_attr('sensor.slideshow_photo', 'file') or '/local/slideshow/') }}

@@ -1,0 +1,85 @@
+# Immich → the slideshow folder: copies the photos of one Immich album into /config/www/slideshow of THIS Home
+# Assistant, as Immich's own JPG previews (about 1440 px). Runs every 15 minutes; photos already there are not fetched
+# again, so the slideshow keeps going when the internet is away (a holiday home, a caravan, a boat).
+# Needs photo_slideshow.yaml beside it (its Folder sensor, sensor.slideshow).
+#
+# Once:
+#  1. In Immich: Account settings → API keys → a new key with ONLY the permissions asset.read (search) and
+#     asset.view (previews). Such a key can delete or change nothing; it can read the whole library, though.
+#  2. In /config/secrets.yaml (beside configuration.yaml, not the one of the ESPHome add-on):
+#       immich_url: "https://immich.example.com"
+#       immich_search_url: "https://immich.example.com/api/search/metadata"
+#       immich_api_key: "the key of step 1"
+#  3. Add the Downloader integration (Settings → Devices & services → Add integration) with the folder /config/www.
+#  4. Put this file in /config/packages/ and restart Home Assistant.
+#  5. Fill in the album's id in input_text.immich_album: open the album in Immich, the id is in the address bar
+#     (…/albums/<this part>). The button "Immich fetch now" starts at once.
+
+input_text:
+  immich_album:
+    name: Immich album id
+    icon: mdi:image-album
+    max: 40
+    pattern: "[0-9a-f-]*"
+
+input_button:
+  immich_fetch_now:
+    name: Immich fetch now
+    icon: mdi:cloud-download
+
+rest_command:
+  immich_album_search:
+    url: !secret immich_search_url
+    method: post
+    headers:
+      x-api-key: !secret immich_api_key
+    content_type: application/json
+    # Photos only (no videos), at most 1000 of the album.
+    payload: '{"albumIds": ["{{ album }}"], "type": "IMAGE", "size": 1000, "withExif": false}'
+    timeout: 60
+
+automation:
+  - id: immich_slideshow_sync
+    alias: Immich slideshow sync
+    description: Fetches new photos of the Immich album into /config/www/slideshow, as JPG previews of about 1440 px.
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/15"
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id: input_button.immich_fetch_now
+      - trigger: state
+        entity_id: input_text.immich_album
+    conditions:
+      - condition: template
+        value_template: "{{ states('input_text.immich_album') | length == 36 }}"
+    actions:
+      - action: rest_command.immich_album_search
+        data:
+          album: "{{ states('input_text.immich_album') }}"
+        response_variable: answer
+        continue_on_error: true
+      # No connection to Immich: do nothing, the photos already there stay.
+      - condition: template
+        value_template: "{{ answer is defined and answer.status == 200 }}"
+      - variables:
+          immich_url: !secret immich_url
+          key: !secret immich_api_key
+          ids: "{{ answer.content.assets['items'] | map(attribute='id') | list }}"
+          present: >-
+            {{ (state_attr('sensor.slideshow', 'file_list') or [])
+               | map('regex_replace', '^.*/|\\.jpg$', '') | list }}
+          # At most 40 a round, so a large album comes in calmly.
+          new: "{{ (ids | reject('in', present) | list)[:40] }}"
+      - repeat:
+          for_each: "{{ new }}"
+          sequence:
+            - action: downloader.download_file
+              data:
+                url: "{{ immich_url }}/api/assets/{{ repeat.item }}/thumbnail?size=preview&apiKey={{ key }}"
+                subdir: slideshow
+                filename: "{{ repeat.item }}.jpg"
+                overwrite: true
+            - delay: { seconds: 1 }
