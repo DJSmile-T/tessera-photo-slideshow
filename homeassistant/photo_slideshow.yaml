@@ -9,6 +9,9 @@
 #     packages: !include_dir_named packages
 #     allowlist_external_dirs:
 #       - /config/www/slideshow
+#     media_dirs:                        # the same folder for Tessera's Photos screensaver (Tessera 0.4.89)
+#       local: /media
+#       slideshow: /config/www/slideshow
 #
 # Create the folder /config/www/slideshow first. Photos: JPG or PNG, each under 4 MB (see the README).
 #

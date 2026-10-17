@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+- Needs Tessera 0.4.89 (firmware 0.57.0, plugin API 0.14).
+- **A face for Tessera's own Photos screensaver.** Tessera now shows the photos of a media folder in standby by
+  itself. Pick **Photo slideshow caption** under Face in the drawer of Photos, and the screensaver shows the same
+  caption as the tile over its photo: the album (or words of your own) and which photo of how many, in a corner you
+  choose, with the time if you like.
+- The Home Assistant package offers the slideshow folder as a media folder too (`media_dirs`), so the Photos step can
+  show the same photos without internet. The image entity is no longer needed for the screensaver.
+
 ## 0.2.0
 - **Seconds between photos** on the tile: the screen asks for the next photo itself, every so many seconds (at least
   5). 0 keeps the pace of Home Assistant's slideshow interval, as before.

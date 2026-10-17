@@ -134,8 +134,81 @@ class SlideshowTile : public tessera::Tile {
   lv_obj_t *place_{}, *band_{}, *caption_{}, *message_{};
 };
 
+// The face of the screensaver's photos (plugin API 0.14): Tessera's own Photos step picks the photo and shows it over
+// the whole glass under this face (`backdrop: true`, moving slowly when the person chose Motion: Slow). The face draws
+// what the tile draws over its photo: the caption, the album and which photo of how many, on a soft band in a corner,
+// and the time with it when the person wants. The screen moves the band a millimetre every minute against burn-in.
+class CaptionSaver : public tessera::Saver {
+ public:
+  void show(const tessera::SaverContext &c) override {
+    width_ = c.width;
+    height_ = c.height;
+    // An option the person never touched may be missing: read each with its default.
+    const char *corner = c.options["corner"] | "bottom_left";
+    right_ = std::string(corner).find("right") != std::string::npos;
+    top_ = std::string(corner).rfind("top", 0) == 0;
+    clock_ = c.options["time"] | false;
+    numbers_ = c.options["numbers"] | true;
+    title_ = c.options["title"] | "";
+    // The band, over the photo, and its two lines.
+    band_ = ui::block(c.parent, theme::CAMERA_PAGE);
+    lv_obj_set_style_bg_opa(band_, LV_OPA_50, 0);
+    lv_obj_add_flag(band_, LV_OBJ_FLAG_HIDDEN);
+    time_ = ui::label(band_, Font::HEADLINE, theme::INK);
+    caption_ = ui::label(band_, Font::BODY, theme::INK_SOFT);
+  }
+
+  // The step's contract: picture, mark, index, count, album. Kept here, painted in on_tick.
+  void on_state(JsonObjectConst data) override {
+    album_ = data["album"] | "";
+    index_ = data["index"] | 0;
+    count_ = data["count"] | 0;
+    dirty_ = true;
+  }
+
+  void on_tick(uint32_t epoch) override {
+    const uint32_t minute = clock_ && epoch ? epoch / 60 : 0;
+    if (!dirty_ && minute == minute_) return;   // nothing new: paint nothing
+    dirty_ = false;
+    minute_ = minute;
+    std::string words = title_.empty() ? roomy::plain(album_) : roomy::plain(title_);
+    if (numbers_ && index_ > 0 && count_ > 0) {
+      if (!words.empty()) words += " \xC2\xB7 ";   // a middle dot between the album and the numbers
+      words += std::to_string(index_) + "/" + std::to_string(count_);
+    }
+    const std::string time = minute ? tessera::clock_text(epoch) : "";
+    if (words.empty() && time.empty()) {
+      lv_obj_add_flag(band_, LV_OBJ_FLAG_HIDDEN);
+      return;
+    }
+    const int pad = ui::mm(2), edge = ui::mm(4), room = width_ - 2 * edge - 2 * pad;
+    const int th = time.empty() ? 0 : ui::line_height(Font::HEADLINE), ch = words.empty() ? 0 : ui::line_height(Font::BODY);
+    const int tw = time.empty() ? 0 : std::min(ui::text_width(time, Font::HEADLINE), room);
+    const int cw = words.empty() ? 0 : std::min(ui::text_width(words, Font::BODY), room);
+    const int w = std::max(tw, cw) + 2 * pad, h = th + ch + 2 * pad;
+    ui::set_text(time_, time);
+    ui::set_text(caption_, words);
+    lv_obj_set_width(time_, std::max(tw, 1));
+    lv_obj_set_width(caption_, std::max(cw, 1));
+    lv_obj_set_pos(time_, right_ ? w - pad - tw : pad, pad);
+    lv_obj_set_pos(caption_, right_ ? w - pad - cw : pad, pad + th);
+    lv_obj_set_size(band_, w, h);
+    lv_obj_set_pos(band_, right_ ? width_ - edge - w : edge, top_ ? edge : height_ - edge - h);
+    lv_obj_remove_flag(band_, LV_OBJ_FLAG_HIDDEN);
+  }
+
+ private:
+  int width_ = 0, height_ = 0, index_ = 0, count_ = 0;
+  bool right_ = false, top_ = false, clock_ = false, numbers_ = true, dirty_ = true;
+  uint32_t minute_ = 0;
+  tessera::Text album_, title_;   // PSRAM first (docs/FIRMWARE_API.md, "Memory")
+  lv_obj_t *band_{}, *time_{}, *caption_{};
+};
+
 void PhotoSlideshow::setup() {
   add_tile("slideshow", [this]() { return new SlideshowTile(this); });
+  // The face of Tessera's own Photos screensaver step (plugin API 0.14); its step must be the manifest's.
+  add_saver("caption", tessera::SaverStep::PHOTOS, []() { return new CaptionSaver(); });
 }
 
 }  // namespace esphome::photo_slideshow

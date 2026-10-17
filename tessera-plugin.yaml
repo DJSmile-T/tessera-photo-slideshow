@@ -1,11 +1,12 @@
 # Photo slideshow: your own photos (a holiday, the kids, the dog) large on a tile. Home Assistant picks the photo: a
 # template sensor whose state is the photo's address (an image entity, /api/image_proxy/...), a new one every few
 # minutes (homeassistant/photo_slideshow.yaml). The tile shows it, slides to the next one when it changes, and a tap
-# asks for the next.
+# asks for the next. Since 0.3.0 it also brings a face for Tessera's own Photos screensaver (plugin API 0.14): the
+# same caption over the photo the screensaver shows.
 # Every field is explained in docs/MANIFEST.md of the plugins repository.
 id: photo_slideshow
-version: 0.2.0
-api: "0.10"
+version: 0.3.0
+api: "0.14"
 icon: image
 maintainer: DJSmile-T
 license: MIT
@@ -42,3 +43,23 @@ tiles:
       - { id: slide, kind: toggle, label: slide, hint: slide_hint, default: true }
       - { id: interval, kind: number, label: interval, hint: interval_hint, default: 0, min: 0, max: 3600, step: 5,
           unit: s }
+
+savers:
+  # A face of Tessera's own Photos step (0.4.89): a person picks it under Face in the drawer of Photos. The step picks
+  # the photo from a media folder of Home Assistant and shows it under the face; the face draws the caption over it.
+  - id: caption
+    name: saver_name
+    icon: image
+    step: photos
+    # The band and its two lines.
+    memory: 400
+    # The step's own photo under the face, over the whole glass, moving when the person chose Motion: Slow.
+    backdrop: true
+    example: saver_example
+    options:
+      - { id: corner, kind: choice, label: corner, hint: corner_hint, default: bottom_left,
+          choices: [{ value: bottom_left, label: bottom_left }, { value: bottom_right, label: bottom_right },
+                    { value: top_left, label: top_left }, { value: top_right, label: top_right }] }
+      - { id: title, kind: text, label: saver_title, hint: saver_title_hint }
+      - { id: numbers, kind: toggle, label: numbers, hint: numbers_hint, default: true }
+      - { id: time, kind: toggle, label: saver_time, hint: saver_time_hint, default: false }

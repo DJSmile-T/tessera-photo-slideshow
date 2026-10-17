@@ -21,6 +21,20 @@
     "slide": "Schuiven",
     "slide_hint": "De foto schuift weg als de volgende komt.",
     "interval": "Seconden tussen foto's",
-    "interval_hint": "0: Home Assistant bepaalt het tempo (de wisseltijd van de diavoorstelling). Anders vraagt dit scherm na zoveel seconden om de volgende foto, minstens 5; hangen er meer schermen aan één sensor, dan krijgen ze allemaal de nieuwe foto."
+    "interval_hint": "0: Home Assistant bepaalt het tempo (de wisseltijd van de diavoorstelling). Anders vraagt dit scherm na zoveel seconden om de volgende foto, minstens 5; hangen er meer schermen aan één sensor, dan krijgen ze allemaal de nieuwe foto.",
+    "saver_name": "Onderschrift fotodiavoorstelling",
+    "saver_example": "Het album en welke foto van hoeveel, over de foto",
+    "corner": "Hoek",
+    "corner_hint": "Waar het onderschrift op het glas staat.",
+    "bottom_left": "Linksonder",
+    "bottom_right": "Rechtsonder",
+    "top_left": "Linksboven",
+    "top_right": "Rechtsboven",
+    "saver_title": "Onderschrift",
+    "saver_title_hint": "Eigen woorden, zoals Vakantie 2026. Leeg laten voor de naam van het album of de map.",
+    "numbers": "Fotonummers",
+    "numbers_hint": "Welke foto van hoeveel, zoals 12/148.",
+    "saver_time": "Tijd",
+    "saver_time_hint": "De tijd boven het onderschrift."
   }
 }

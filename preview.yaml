@@ -14,6 +14,18 @@ tiles:
     entity: sensor.slideshow_empty
     sizes: [2x1]
 
+savers:
+  - saver: caption
+    name: Caption
+    data: { album: Holiday 2026, index: 12, count: 148 }
+    picture: preview/holiday.jpg
+  - saver: caption
+    name: Top right, with the time
+    options: { corner: top_right, time: true }
+    data: { album: slideshow, index: 37, count: 148 }
+    picture: preview/holiday.jpg
+    motion: true
+
 states:
   sensor.slideshow_photo:
     state: /api/image_proxy/image.slideshow_photo?v=IMG_0412

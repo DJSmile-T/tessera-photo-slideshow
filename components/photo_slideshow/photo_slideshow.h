@@ -4,7 +4,8 @@
 
 namespace esphome::photo_slideshow {
 
-// The plugin: an ESPHome component and a tessera::Plugin. It registers its tile types in setup().
+// The plugin: an ESPHome component and a tessera::Plugin. It registers its tile and its screensaver face in
+// setup().
 class PhotoSlideshow : public Component, public tessera::Plugin {
  public:
   void setup() override;

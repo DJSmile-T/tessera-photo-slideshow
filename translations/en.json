@@ -21,6 +21,20 @@
     "slide": "Slide",
     "slide_hint": "The photo slides away when the next one comes.",
     "interval": "Seconds between photos",
-    "interval_hint": "0: Home Assistant sets the pace (its slideshow interval). Otherwise this screen asks for the next photo after so many seconds, at least 5; with several screens on one sensor, every screen gets the new photo."
+    "interval_hint": "0: Home Assistant sets the pace (its slideshow interval). Otherwise this screen asks for the next photo after so many seconds, at least 5; with several screens on one sensor, every screen gets the new photo.",
+    "saver_name": "Photo slideshow caption",
+    "saver_example": "The album and which photo of how many, over the photo",
+    "corner": "Corner",
+    "corner_hint": "Where the caption stands on the glass.",
+    "bottom_left": "Bottom left",
+    "bottom_right": "Bottom right",
+    "top_left": "Top left",
+    "top_right": "Top right",
+    "saver_title": "Caption",
+    "saver_title_hint": "Words of your own, such as Holiday 2026. Leave it empty for the name of the album or folder.",
+    "numbers": "Photo numbers",
+    "numbers_hint": "Which photo of how many, such as 12/148.",
+    "saver_time": "Time",
+    "saver_time_hint": "The time above the caption."
   }
 }

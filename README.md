@@ -7,7 +7,8 @@ minutes; the tile shows it, slides it away when the next one comes, and a tap on
 once. The caption at the bottom says the album and which photo of how many ("Holiday · 12/148").
 
 The photos come from a folder in Home Assistant, or from an album in [Immich](https://immich.app) that Home Assistant
-copies into that folder, so the slideshow keeps going without internet. The same photo can be Tessera's screensaver.
+copies into that folder, so the slideshow keeps going without internet. In standby, Tessera's own Photos screensaver
+(Tessera 0.4.89) shows the same folder, with this plugin's caption over it.
 
 [Nederlands](README.nl.md)
 
@@ -41,8 +42,12 @@ Supervisor, which passes `/api/...` on but not the `www` folder (`/local/...`).
      packages: !include_dir_named packages
      allowlist_external_dirs:
        - /config/www/slideshow
+     media_dirs:
+       local: /media                  # Home Assistant's own media folder, which media_dirs would otherwise replace
+       slideshow: /config/www/slideshow
    ```
-   Check the configuration (Developer tools → YAML) and restart Home Assistant.
+   `media_dirs` offers the folder as **My media → slideshow** too, for Tessera's Photos screensaver (below). Check the
+   configuration (Developer tools → YAML) and restart Home Assistant.
 4. Within a minute `sensor.slideshow_photo` has a state such as `/api/image_proxy/image.slideshow_photo?v=IMG_0412`,
    and `image.slideshow_photo` shows that photo.
 5. Add this plugin to a screen in Tessera: Plugins → **Add with a link**, with this repository's address. The screen
@@ -80,11 +85,19 @@ taken.
 
 ## As Tessera's screensaver
 
-Tessera's screensaver takes an image entity as a camera. In Tessera, open the screen → Settings → **Screensaver**,
-turn on **Show in standby** (and Auto standby), choose `image.slideshow_photo` under **Camera** and drag Camera to the
-top. In standby the photo fills the glass, a little darker, and changes with the slideshow. The name at its bottom
-left is the entity's name: rename `image.slideshow_photo` in Home Assistant to show your album instead. The Waveshare
-4.3, 5 and 7-inch boards never go into standby, so they have no screensaver.
+Tessera 0.4.89 has a screensaver step of its own for photos, and this plugin brings a face for it (plugin API 0.14): the
+same caption as the tile, over the photo.
+
+1. In Tessera, open the screen → Settings → **Screensaver**, and turn on **Show in standby** (and Auto standby).
+2. Open the step **Photos**. Under **Folder**, choose **My media → slideshow** (the `media_dirs` of step 3 above).
+3. Under **Face**, choose **Photo slideshow caption**. In its options: the **Corner**, a **Caption** of your own
+   (empty: the folder's name), **Photo numbers** (12/148) and the **Time**.
+4. Choose how long each photo stands, the order and the fit, and drag Photos to the top of the steps.
+
+The screensaver walks the folder by itself, apart from the tile: it has its own photo and its own pace. Pick the folder,
+not the Immich album, when the screen is somewhere without internet: the album is read live from Immich. The Waveshare
+4.3, 5 and 7-inch boards never go into standby, so they have no screensaver. Before 0.4.89, the screensaver could show
+`image.slideshow_photo` as a Camera instead.
 
 ## Good to know
 

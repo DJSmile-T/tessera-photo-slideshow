@@ -7,7 +7,8 @@ minuten een foto; de tegel toont hem, schuift hem weg als de volgende komt, en e
 volgende. Het onderschrift onderaan noemt het album en welke foto van hoeveel ("Vakantie · 12/148").
 
 De foto's komen uit een map in Home Assistant, of uit een album in [Immich](https://immich.app) dat Home Assistant naar
-die map kopieert, zodat de diavoorstelling ook zonder internet doorloopt. Dezelfde foto kan Tessera's screensaver zijn.
+die map kopieert, zodat de diavoorstelling ook zonder internet doorloopt. In standby toont Tessera's eigen
+Photos-screensaver (Tessera 0.4.89) dezelfde map, met het onderschrift van deze plugin erover.
 
 [English](README.md)
 
@@ -30,7 +31,11 @@ de app als add-on via de Supervisor met Home Assistant praat, en die geeft `/api
      packages: !include_dir_named packages
      allowlist_external_dirs:
        - /config/www/slideshow
+     media_dirs:
+       local: /media                  # de eigen mediamap van Home Assistant, die media_dirs anders vervangt
+       slideshow: /config/www/slideshow
    ```
+   Met `media_dirs` staat de map ook in **Mijn media → slideshow**, voor Tessera's Photos-screensaver (hieronder).
    Controleer de configuratie (Ontwikkelaarshulpmiddelen → YAML) en herstart Home Assistant.
 4. Binnen een minuut staat `sensor.slideshow_photo` op iets als `/api/image_proxy/image.slideshow_photo?v=IMG_0412`,
    en toont `image.slideshow_photo` die foto.
@@ -68,11 +73,19 @@ maximaal 1000 genomen.
 
 ## Als Tessera's screensaver
 
-Tessera's screensaver neemt een image-entiteit als camera. Open in Tessera het scherm → Settings → **Screensaver**, zet
-**Show in standby** aan (en Auto standby), kies `image.slideshow_photo` bij **Camera** en sleep Camera bovenaan. In
-standby vult de foto het glas, iets donkerder, en wisselt mee met de diavoorstelling. Linksonder staat de naam van de
-entiteit: geef `image.slideshow_photo` in Home Assistant de naam van je album. De Waveshare-schermen van 4,3, 5 en 7
-inch gaan nooit in standby en hebben dus geen screensaver.
+Tessera 0.4.89 heeft een eigen screensaver-stap voor foto's, en deze plugin brengt daar een face voor mee (plugin-API
+0.14): hetzelfde onderschrift als op de tegel, over de foto.
+
+1. Open in Tessera het scherm → Settings → **Screensaver** en zet **Show in standby** aan (en Auto standby).
+2. Open de stap **Photos**. Kies bij **Folder** **Mijn media → slideshow** (de `media_dirs` van stap 3 hierboven).
+3. Kies bij **Face** **Onderschrift fotodiavoorstelling**. In de opties: de **Hoek**, een eigen **Onderschrift** (leeg:
+   de naam van de map), **Fotonummers** (12/148) en de **Tijd**.
+4. Kies hoe lang elke foto blijft staan, de volgorde en het passen, en sleep Photos bovenaan.
+
+De screensaver loopt de map zelf door, los van de tegel: met een eigen foto en een eigen tempo. Kies de map, niet het
+Immich-album, als het scherm ergens zonder internet staat: het album wordt live uit Immich gelezen. De Waveshare-schermen
+van 4,3, 5 en 7 inch gaan nooit in standby en hebben dus geen screensaver. Vóór 0.4.89 kon de screensaver
+`image.slideshow_photo` als Camera tonen.
 
 ## Goed om te weten
 
