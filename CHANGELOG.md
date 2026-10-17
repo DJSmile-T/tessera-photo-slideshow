@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+- **Choose what stands over the photo**, on the tile and in the screensaver, each on or off: the album and numbers
+  (Holiday · 12/148), the photo's name, the place it was taken (Granada, Spain), the date it was taken, and the time.
+  And the corner the details stand in.
+- **A screensaver step of its own: Photo slideshow.** The slideshow's own photo over the whole glass in standby, with
+  the same details as the tile, and seconds between photos of its own. Add it under Screensaver → Add from plugins.
+  Tessera's Photos step and its caption face stay too, for any media folder.
+- The name, place and date come from Immich: take the new homeassistant/immich_sync.yaml and photo_slideshow.yaml
+  along. Photos from a folder without Immich show their file name.
+
 ## 0.3.0
 - Needs Tessera 0.4.89 (firmware 0.57.0, plugin API 0.14).
 - **A face for Tessera's own Photos screensaver.** Tessera now shows the photos of a media folder in standby by

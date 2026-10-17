@@ -5,7 +5,7 @@
 # same caption over the photo the screensaver shows.
 # Every field is explained in docs/MANIFEST.md of the plugins repository.
 id: photo_slideshow
-version: 0.3.0
+version: 0.4.0
 api: "0.14"
 icon: image
 maintainer: DJSmile-T
@@ -27,12 +27,13 @@ tiles:
     name: tile_name
     icon: image
     sizes: { min: 1x1, max: 9x9 }
-    memory: 600
+    # The photo's place, the band with three lines and the message.
+    memory: 900
     # One place for the photo. A board without the memory for pictures says so instead.
     pictures: 1
     # The slideshow sensor of Home Assistant (README, "Set up"): its state is the photo's address.
     domains: [sensor]
-    attributes: [caption, next_button]
+    attributes: [caption, next_button, photo_name, place, photo_date]
     has_attributes: [next_button]
     example: tile_example
     preview: { title: "{caption}" }
@@ -40,6 +41,13 @@ tiles:
       - { id: fit, kind: choice, label: fit, hint: fit_hint, default: cover,
           choices: [{ value: cover, label: fit_cover }, { value: contain, label: fit_contain }] }
       - { id: caption, kind: toggle, label: caption, hint: caption_hint, default: true }
+      - { id: name, kind: toggle, label: photo_name, hint: photo_name_hint, default: false }
+      - { id: place, kind: toggle, label: place, hint: place_hint, default: true }
+      - { id: date, kind: toggle, label: photo_date, hint: photo_date_hint, default: false }
+      - { id: time, kind: toggle, label: clock, hint: clock_hint, default: false }
+      - { id: corner, kind: choice, label: corner, hint: corner_hint, default: bottom_left,
+          choices: [{ value: bottom_left, label: bottom_left }, { value: bottom_right, label: bottom_right },
+                    { value: top_left, label: top_left }, { value: top_right, label: top_right }] }
       - { id: slide, kind: toggle, label: slide, hint: slide_hint, default: true }
       - { id: interval, kind: number, label: interval, hint: interval_hint, default: 0, min: 0, max: 3600, step: 5,
           unit: s }
@@ -63,3 +71,28 @@ savers:
       - { id: title, kind: text, label: saver_title, hint: saver_title_hint }
       - { id: numbers, kind: toggle, label: numbers, hint: numbers_hint, default: true }
       - { id: time, kind: toggle, label: saver_time, hint: saver_time_hint, default: false }
+  # A step of its own: the slideshow sensor's photo over the whole glass in standby, with every detail the tile has.
+  - id: slideshow
+    name: saver_own_name
+    icon: image
+    step: own
+    # The photo's place, the band with three lines and the message.
+    memory: 900
+    pictures: 1
+    domains: [sensor]
+    attributes: [caption, next_button, photo_name, place, photo_date]
+    when: always
+    example: saver_own_example
+    options:
+      - { id: fit, kind: choice, label: fit, hint: fit_hint, default: cover,
+          choices: [{ value: cover, label: fit_cover }, { value: contain, label: fit_contain }] }
+      - { id: caption, kind: toggle, label: caption, hint: caption_hint, default: true }
+      - { id: name, kind: toggle, label: photo_name, hint: photo_name_hint, default: false }
+      - { id: place, kind: toggle, label: place, hint: place_hint, default: true }
+      - { id: date, kind: toggle, label: photo_date, hint: photo_date_hint, default: false }
+      - { id: time, kind: toggle, label: clock, hint: clock_hint, default: true }
+      - { id: corner, kind: choice, label: corner, hint: corner_hint, default: bottom_left,
+          choices: [{ value: bottom_left, label: bottom_left }, { value: bottom_right, label: bottom_right },
+                    { value: top_left, label: top_left }, { value: top_right, label: top_right }] }
+      - { id: interval, kind: number, label: interval, hint: interval_hint, default: 0, min: 0, max: 3600, step: 5,
+          unit: s }

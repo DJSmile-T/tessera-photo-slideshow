@@ -43,8 +43,11 @@ de app als add-on via de Supervisor met Home Assistant praat, en die geeft `/api
    scherm bouwt één keer.
 6. Zet in Layout de tegel **Diavoorstelling** uit de groep Plugins neer, zo groot als je wilt, en kies
    `sensor.slideshow_photo` als entiteit. De editor toont alleen het onderschrift; de foto zie je op het scherm zelf.
-7. In de inspector: **Passen** (vullen of passend), **Onderschrift**, **Schuiven** en **Seconden tussen foto's** (0
-   laat het tempo aan Home Assistant; anders vraagt het scherm elke zoveel seconden om de volgende foto, minstens 5).
+7. In de inspector: **Passen** (vullen of passend), wat er over de foto staat, elk aan of uit (**Album en nummers**,
+   **Naam van de foto**, **Plaats**, **Opnamedatum**, **Tijd**) en de **Hoek** waar het staat, **Schuiven**, en
+   **Seconden tussen foto's** (0 laat het tempo aan Home Assistant; anders vraagt het scherm elke zoveel seconden om de
+   volgende foto, minstens 5). Plaats en opnamedatum komen uit Immich (hieronder); een foto uit een map zonder Immich
+   heeft zijn bestandsnaam als naam, en geen plaats of datum.
 8. Wil je dat een tik de volgende foto geeft, laat het scherm dan Home Assistant-acties uitvoeren: Instellingen →
    Apparaten & diensten → ESPHome → het scherm → Configureren.
 
@@ -68,21 +71,29 @@ diavoorstelling door als het internet wegvalt.
 5. Vul het ID van het album (het laatste stuk van het adres in Immich) in bij `input_text.immich_album`. **Immich fetch
    now** begint meteen; daarna elk kwartier, 40 foto's per ronde.
 
-Een foto die je uit het album haalt, blijft in de map staan tot je hem daar weghaalt; van een album worden er
-maximaal 1000 genomen.
+Ook bewaart hij van elke foto de oorspronkelijke naam, de plaats (stad en land) en de opnamedatum in
+`sensor.slideshow_meta`, waar de diavoorstelling de details over de foto uit leest. Een foto die je uit het album haalt,
+blijft in de map staan tot je hem daar weghaalt; van een album worden er maximaal 1000 genomen.
 
 ## Als Tessera's screensaver
 
-Tessera 0.4.89 heeft een eigen screensaver-stap voor foto's, en deze plugin brengt daar een face voor mee (plugin-API
-0.14): hetzelfde onderschrift als op de tegel, over de foto.
+Twee manieren, allebei met Tessera 0.4.89 (firmware 0.57.0, plugin-API 0.14).
+
+**De eigen stap van de diavoorstelling** (alle details): open in Tessera het scherm → Settings → **Screensaver**, zet
+**Show in standby** aan (en Auto standby), kies **Add from plugins → Fotodiavoorstelling**, kies `sensor.slideshow_photo`
+als entiteit en sleep hem bovenaan. In standby toont hij de foto van de diavoorstelling over het hele glas, met dezelfde
+details als de tegel, elk aan of uit (de tijd standaard aan), en een eigen **Seconden tussen foto's**.
+
+**Tessera's eigen Photos-stap**, met het onderschrift van deze plugin: voor elke mediamap, met Tessera's eigen tempo,
+volgorde en langzaam bewegen. Die kent het album en welke foto van hoeveel, niet de naam, plaats of datum van een foto.
 
 1. Open in Tessera het scherm → Settings → **Screensaver** en zet **Show in standby** aan (en Auto standby).
 2. Open de stap **Photos**. Kies bij **Folder** **Mijn media → slideshow** (de `media_dirs` van stap 3 hierboven).
-3. Kies bij **Face** **Onderschrift fotodiavoorstelling**. In de opties: de **Hoek**, een eigen **Onderschrift** (leeg:
+3. Kies bij **Face** **Onderschrift fotodiavoorstelling (Photos)**. In de opties: de **Hoek**, een eigen **Onderschrift** (leeg:
    de naam van de map), **Fotonummers** (12/148) en de **Tijd**.
 4. Kies hoe lang elke foto blijft staan, de volgorde en het passen, en sleep Photos bovenaan.
 
-De screensaver loopt de map zelf door, los van de tegel: met een eigen foto en een eigen tempo. Kies de map, niet het
+De Photos-stap loopt de map zelf door, los van de tegel: met een eigen foto en een eigen tempo. Kies de map, niet het
 Immich-album, als het scherm ergens zonder internet staat: het album wordt live uit Immich gelezen. De Waveshare-schermen
 van 4,3, 5 en 7 inch gaan nooit in standby en hebben dus geen screensaver. Vóór 0.4.89 kon de screensaver
 `image.slideshow_photo` als Camera tonen.
@@ -95,7 +106,8 @@ van 4,3, 5 en 7 inch gaan nooit in standby en hebben dus geen screensaver. Vóó
 - Een scherm zonder geheugen voor afbeeldingen (de CYD, de Waveshare 3,5 inch, de Hosyond 4 inch) zegt dat in plaats
   van een foto te tonen.
 - De bestandslijst van de Folder-sensor kan lang worden: houd hem uit de geschiedenis met
-  `recorder: exclude: entities: [sensor.slideshow]` in `configuration.yaml`.
+  `recorder: exclude: entities: [sensor.slideshow, sensor.slideshow_meta]` in `configuration.yaml` (de tweede bevat
+  de details van alle foto's van het Immich-album).
 - Blijft de tegel leeg met alleen het onderschrift: open `image.slideshow_photo` in Home Assistant. Staat daar geen
   foto, dan is het adres in de package (stap 2) niet het adres waarop Home Assistant zichzelf bereikt.
 

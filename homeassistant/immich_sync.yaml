@@ -35,7 +35,8 @@ rest_command:
       x-api-key: !secret immich_api_key
     content_type: application/json
     # Photos only (no videos), at most 1000 of the album.
-    payload: '{"albumIds": ["{{ album }}"], "type": "IMAGE", "size": 1000, "withExif": false}'
+    # withExif: the place and the date taken, for the details over the photo.
+    payload: '{"albumIds": ["{{ album }}"], "type": "IMAGE", "size": 1000, "withExif": true}'
     timeout: 60
 
 automation:
@@ -73,6 +74,20 @@ automation:
                | map('regex_replace', '^.*/|\\.jpg$', '') | list }}
           # At most 40 a round, so a large album comes in calmly.
           new: "{{ (ids | reject('in', present) | list)[:40] }}"
+      # The details of every photo of the album (its original name, where and when it was taken) for
+      # sensor.slideshow_meta below, which keeps them, also through a restart and without internet.
+      - event: immich_slideshow_meta
+        event_data:
+          items: >-
+            {%- set ns = namespace(parts=[]) -%}
+            {%- for a in answer.content.assets['items'] -%}
+              {%- set x = a.exifInfo or {} -%}
+              {%- set name = (a.originalFileName or '').rsplit('.', 1)[0] -%}
+              {%- set place = [x.city, x.country] | select | join(', ') -%}
+              {%- set taken = x.dateTimeOriginal or a.localDateTime or '' -%}
+              {%- set ns.parts = ns.parts + [(a.id | tojson) ~ ':' ~ ([name[:48], place[:48], taken] | tojson)] -%}
+            {%- endfor -%}
+            {{ '{' ~ ns.parts | join(',') ~ '}' }}
       - repeat:
           for_each: "{{ new }}"
           sequence:
@@ -83,3 +98,18 @@ automation:
                 filename: "{{ repeat.item }}.jpg"
                 overwrite: true
             - delay: { seconds: 1 }
+
+# The details of the album's photos, by their id (the file name of each photo in the folder): [name, place, date taken].
+# photo_slideshow.yaml reads them for the photo it picks. Keep this sensor out of the history (README, "Good to know").
+template:
+  - triggers:
+      - trigger: event
+        event_type: immich_slideshow_meta
+    sensor:
+      - name: Slideshow meta
+        unique_id: tessera_slideshow_meta
+        icon: mdi:information-outline
+        state: "{{ trigger.event.data['items'] | count }}"
+        attributes:
+          items: "{{ trigger.event.data['items'] }}"
+

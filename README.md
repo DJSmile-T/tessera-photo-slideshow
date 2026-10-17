@@ -54,9 +54,11 @@ Supervisor, which passes `/api/...` on but not the `www` folder (`/local/...`).
    builds once.
 6. In Layout, place the **Slideshow** tile from the library's Plugins group, as large as you like, and choose
    `sensor.slideshow_photo` as its entity. The editor shows the caption only; the photo shows on the screen itself.
-7. In the inspector: **Fit** (cover fills the tile, contain shows the whole photo), **Caption**, **Slide** and
-   **Seconds between photos** (0 leaves the pace to Home Assistant; otherwise the screen asks for the next photo every
-   so many seconds, at least 5).
+7. In the inspector: **Fit** (cover fills the tile, contain shows the whole photo), what stands over the photo, each on
+   or off (**Album and numbers**, **Photo name**, **Place**, **Date taken**, **Time**) and the **Corner** it stands in,
+   **Slide**, and **Seconds between photos** (0 leaves the pace to Home Assistant; otherwise the screen asks for the
+   next photo every so many seconds, at least 5). The place and the date taken come from Immich (below); a photo of a
+   folder without Immich has its file name as its name, and no place or date.
 8. For a tap to give the next photo, allow the screen to perform Home Assistant actions: Settings → Devices &
    services → ESPHome → the screen → Configure.
 
@@ -80,21 +82,29 @@ going when the internet is away.
 5. Fill in the album's id (the last part of its address in Immich) in `input_text.immich_album`. **Immich fetch now**
    starts at once; after that it runs every 15 minutes, 40 photos a round.
 
-A photo you take out of the album stays in the folder until you delete it there; at most 1000 photos of an album are
-taken.
+It also keeps every photo's original name, the place it was taken (city and country) and the date in
+`sensor.slideshow_meta`, which the slideshow reads for the details over the photo. A photo you take out of the album
+stays in the folder until you delete it there; at most 1000 photos of an album are taken.
 
 ## As Tessera's screensaver
 
-Tessera 0.4.89 has a screensaver step of its own for photos, and this plugin brings a face for it (plugin API 0.14): the
-same caption as the tile, over the photo.
+Two ways, both with Tessera 0.4.89 (firmware 0.57.0, plugin API 0.14).
+
+**The slideshow's own step** (every detail): in Tessera, open the screen → Settings → **Screensaver**, turn on **Show in
+standby** (and Auto standby), choose **Add from plugins → Photo slideshow**, pick `sensor.slideshow_photo` as its
+entity and drag it to the top. In standby it shows the slideshow's photo over the whole glass, with the same details as
+the tile, each on or off (the time on by default), and **Seconds between photos** of its own.
+
+**Tessera's own Photos step**, with this plugin's caption: for any media folder, with Tessera's own pace, order and
+slow motion. It knows the album and which photo of how many, not a photo's name, place or date.
 
 1. In Tessera, open the screen → Settings → **Screensaver**, and turn on **Show in standby** (and Auto standby).
 2. Open the step **Photos**. Under **Folder**, choose **My media → slideshow** (the `media_dirs` of step 3 above).
-3. Under **Face**, choose **Photo slideshow caption**. In its options: the **Corner**, a **Caption** of your own
+3. Under **Face**, choose **Photo slideshow caption (Photos)**. In its options: the **Corner**, a **Caption** of your own
    (empty: the folder's name), **Photo numbers** (12/148) and the **Time**.
 4. Choose how long each photo stands, the order and the fit, and drag Photos to the top of the steps.
 
-The screensaver walks the folder by itself, apart from the tile: it has its own photo and its own pace. Pick the folder,
+The Photos step walks the folder by itself, apart from the tile: it has its own photo and its own pace. Pick the folder,
 not the Immich album, when the screen is somewhere without internet: the album is read live from Immich. The Waveshare
 4.3, 5 and 7-inch boards never go into standby, so they have no screensaver. Before 0.4.89, the screensaver could show
 `image.slideshow_photo` as a Camera instead.
@@ -106,7 +116,8 @@ not the Immich album, when the screen is somewhere without internet: the album i
   The Immich sync does this for you.
 - A board without the memory for pictures (the CYD, the Waveshare 3.5-inch, the Hosyond 4-inch) says so instead.
 - The Folder sensor's list of files can be long: keep it out of the history with
-  `recorder: exclude: entities: [sensor.slideshow]` in `configuration.yaml`.
+  `recorder: exclude: entities: [sensor.slideshow, sensor.slideshow_meta]` in `configuration.yaml` (the second one
+  holds the details of every photo of the Immich album).
 - The tile stays empty with only its caption: open `image.slideshow_photo` in Home Assistant. Without a photo there,
   the address in the package (step 2) is not the one Home Assistant reaches itself on.
 

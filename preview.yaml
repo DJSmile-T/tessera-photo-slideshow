@@ -5,6 +5,11 @@ tiles:
     name: Holiday
     entity: sensor.slideshow_photo
   - tile: slideshow
+    name: Every detail
+    entity: sensor.slideshow_photo
+    options: { name: true, date: true, time: true, corner: top_left }
+    sizes: [3x2]
+  - tile: slideshow
     name: Whole photo
     entity: sensor.slideshow_photo
     options: { fit: contain, caption: false }
@@ -15,6 +20,10 @@ tiles:
     sizes: [2x1]
 
 savers:
+  - saver: slideshow
+    name: Photo slideshow
+    entity: sensor.slideshow_photo
+    options: { date: true }
   - saver: caption
     name: Caption
     data: { album: Holiday 2026, index: 12, count: 148 }
@@ -29,7 +38,8 @@ savers:
 states:
   sensor.slideshow_photo:
     state: /api/image_proxy/image.slideshow_photo?v=IMG_0412
-    attributes: { friendly_name: Slideshow photo, caption: "Holiday · 12/148", next_button: input_button.slideshow_next }
+    attributes: { friendly_name: Slideshow photo, caption: "Holiday · 12/148", next_button: input_button.slideshow_next,
+                  photo_name: IMG_0412, place: "Granada, Spain", photo_date: "2026-07-14T18:02:11+02:00" }
   sensor.slideshow_empty:
     state: unknown
     attributes: { friendly_name: Slideshow empty, caption: "", next_button: input_button.slideshow_next }

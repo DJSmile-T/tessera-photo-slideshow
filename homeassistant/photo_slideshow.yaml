@@ -79,6 +79,12 @@ template:
             {% set rest = photos | reject('eq', current) | list %}
             {% set rest = rest if rest | count > 0 else photos %}
             {{ rest | random if rest | count > 0 else '' }}
+          # The photo's details: from Immich (immich_sync.yaml's sensor.slideshow_meta, by the file's name) when there,
+          # else the file's own name.
+          stem: "{{ pick.split('/')[-1].rsplit('.', 1)[0] if pick else '' }}"
+          meta: >-
+            {% set items = state_attr('sensor.slideshow_meta', 'items') %}
+            {{ items[stem] if items is mapping and stem in items else [stem, '', ''] }}
     sensor:
       - name: Slideshow photo
         unique_id: tessera_slideshow_photo
@@ -95,6 +101,10 @@ template:
           # The caption on the photo: the album and which photo of how many.
           caption: >-
             {{ states('input_text.slideshow_album') }}{% if pick in photos %} · {{ photos.index(pick) + 1 }}/{{ photos | count }}{% endif %}
+          # The photo's own name, where it was taken and when (an ISO date: Tessera shows it in the screen's words).
+          photo_name: "{{ meta[0] if pick else '' }}"
+          place: "{{ meta[1] if pick else '' }}"
+          photo_date: "{{ meta[2] if pick else '' }}"
           # What the screen presses on a tap.
           next_button: input_button.slideshow_next
 
