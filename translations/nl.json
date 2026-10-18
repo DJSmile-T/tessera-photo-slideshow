@@ -18,8 +18,6 @@
     "fit_contain": "Passend",
     "caption": "Album en nummers",
     "caption_hint": "Het album en welke foto van hoeveel, zoals Vakantie · 12/148.",
-    "slide": "Schuiven",
-    "slide_hint": "De foto schuift weg als de volgende komt.",
     "interval": "Seconden tussen foto's",
     "interval_hint": "0: Home Assistant bepaalt het tempo (de wisseltijd van de diavoorstelling). Anders vraagt dit scherm na zoveel seconden om de volgende foto, minstens 5; hangen er meer schermen aan één sensor, dan krijgen ze allemaal de nieuwe foto.",
     "saver_name": "Onderschrift fotodiavoorstelling (Photos)",
@@ -45,6 +43,14 @@
     "clock": "Tijd",
     "clock_hint": "De tijd boven de details.",
     "saver_own_name": "Fotodiavoorstelling",
-    "saver_own_example": "De foto van de diavoorstelling met plaats, naam en de tijd"
+    "saver_own_example": "De foto van de diavoorstelling met plaats, naam en de tijd",
+    "transition": "Overgang",
+    "transition_hint": "Hoe de volgende foto komt: de oude schuift weg naar links of naar rechts, of de nieuwe staat er meteen.",
+    "transition_left": "Schuiven naar links",
+    "transition_right": "Schuiven naar rechts",
+    "transition_none": "Geen",
+    "time_corner": "Plek van de tijd",
+    "time_corner_hint": "Bij de details, erboven, of in een eigen hoek.",
+    "with_details": "Bij de details"
   }
 }

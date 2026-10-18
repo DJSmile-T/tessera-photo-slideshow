@@ -18,8 +18,6 @@
     "fit_contain": "Contain",
     "caption": "Album and numbers",
     "caption_hint": "The album and which photo of how many, such as Holiday · 12/148.",
-    "slide": "Slide",
-    "slide_hint": "The photo slides away when the next one comes.",
     "interval": "Seconds between photos",
     "interval_hint": "0: Home Assistant sets the pace (its slideshow interval). Otherwise this screen asks for the next photo after so many seconds, at least 5; with several screens on one sensor, every screen gets the new photo.",
     "saver_name": "Photo slideshow caption (Photos)",
@@ -45,6 +43,14 @@
     "clock": "Time",
     "clock_hint": "The time of day above the details.",
     "saver_own_name": "Photo slideshow",
-    "saver_own_example": "The slideshow’s photo with its place, name and the time"
+    "saver_own_example": "The slideshow’s photo with its place, name and the time",
+    "transition": "Transition",
+    "transition_hint": "How the next photo comes: the old one slides away to the left or to the right, or the new one is there at once.",
+    "transition_left": "Slide to the left",
+    "transition_right": "Slide to the right",
+    "transition_none": "None",
+    "time_corner": "Time stands",
+    "time_corner_hint": "With the details, above them, or in a corner of its own.",
+    "with_details": "With the details"
   }
 }

@@ -40,6 +40,12 @@ input_number:
     initial: 2
     mode: box
 
+input_select:
+  slideshow_order:
+    name: Slideshow order
+    icon: mdi:sort
+    options: [Shuffle, By name, By date taken]
+
 input_text:
   slideshow_album:
     name: Slideshow album name
@@ -56,6 +62,9 @@ template:
       - trigger: state
         entity_id: input_button.slideshow_next
         id: button
+      - trigger: state
+        entity_id: input_select.slideshow_order
+        id: order
       - trigger: homeassistant
         event: start
         id: start
@@ -75,10 +84,31 @@ template:
                | select('search', '(?i)\\.(jpe?g|png)$') | sort | list }}
           current: >-
             {{ (state_attr('sensor.slideshow_photo', 'file') or '') | replace('/local/', '/config/www/') | replace('%20', ' ') }}
+          # The order of the slideshow: shuffled (never the same twice in a row), by file name, or by the date taken
+          # (from Immich's sensor.slideshow_meta; photos without a date come last).
+          order: "{{ states('input_select.slideshow_order') }}"
+          ordered: >-
+            {% if order == 'By date taken' %}
+              {% set items = state_attr('sensor.slideshow_meta', 'items') %}
+              {% set ns = namespace(keys=[]) %}
+              {% for p in photos %}
+                {% set s = p.split('/')[-1].rsplit('.', 1)[0] %}
+                {% set d = items[s][2] if items is mapping and s in items and items[s][2] else '9999' %}
+                {% set ns.keys = ns.keys + [d ~ '|' ~ p] %}
+              {% endfor %}
+              {{ ns.keys | sort | map('regex_replace', '^[^|]*\\|', '') | list }}
+            {% else %}
+              {{ photos }}
+            {% endif %}
           pick: >-
-            {% set rest = photos | reject('eq', current) | list %}
-            {% set rest = rest if rest | count > 0 else photos %}
-            {{ rest | random if rest | count > 0 else '' }}
+            {% if order == 'By name' or order == 'By date taken' %}
+              {% set i = ordered.index(current) if current in ordered else -1 %}
+              {{ ordered[(i + 1) % (ordered | count)] if ordered | count > 0 else '' }}
+            {% else %}
+              {% set rest = photos | reject('eq', current) | list %}
+              {% set rest = rest if rest | count > 0 else photos %}
+              {{ rest | random if rest | count > 0 else '' }}
+            {% endif %}
           # The photo's details: from Immich (immich_sync.yaml's sensor.slideshow_meta, by the file's name) when there,
           # else the file's own name.
           stem: "{{ pick.split('/')[-1].rsplit('.', 1)[0] if pick else '' }}"
@@ -100,7 +130,7 @@ template:
             {{ pick | replace('/config/www/', '/local/') | replace(' ', '%20') if pick else '' }}
           # The caption on the photo: the album and which photo of how many.
           caption: >-
-            {{ states('input_text.slideshow_album') }}{% if pick in photos %} · {{ photos.index(pick) + 1 }}/{{ photos | count }}{% endif %}
+            {{ states('input_text.slideshow_album') }}{% if pick in ordered %} · {{ ordered.index(pick) + 1 }}/{{ ordered | count }}{% endif %}
           # The photo's own name, where it was taken and when (an ISO date: Tessera shows it in the screen's words).
           photo_name: "{{ meta[0] if pick else '' }}"
           place: "{{ meta[1] if pick else '' }}"

@@ -48,10 +48,14 @@ struct PhotoInfo {
   }
 };
 
+class InfoBand;
+
 // Which of the photo's details the person wants to see (the options of the tile and of the screensaver step).
 struct Shown {
   bool caption = true, name = false, place = true, date = false, clock = false;
   bool right = false, top = false;
+  // Where the time stands: with the details (apart = false), or in a corner of its own.
+  bool apart = false, clock_right = false, clock_top = false;
 
   void read(JsonObjectConst o, bool clock_default) {
     caption = o["caption"] | true;
@@ -62,7 +66,16 @@ struct Shown {
     const std::string corner = o["corner"] | "bottom_left";
     right = corner.find("right") != std::string::npos;
     top = corner.rfind("top", 0) == 0;
+    const std::string at = o["time_corner"] | "with_details";
+    clock_right = at.find("right") != std::string::npos;
+    clock_top = at.rfind("top", 0) == 0;
+    // A corner of its own, unless it is the details' corner: then it stands with them, above them.
+    apart = at != "with_details" && (clock_right != right || clock_top != top);
   }
+
+  // Paints the details' band and the time's own band (empty unless the time stands apart).
+  void paint(InfoBand &details_band, InfoBand &clock_band, const std::string &time, const std::string &caption,
+             const std::string &details) const;
 
   // The second line: the photo's name, where and when, those the person chose and the photo has, a dot between two.
   std::string details(const PhotoInfo &p) const {
@@ -159,6 +172,12 @@ class InfoBand {
   lv_obj_t *band_{}, *time_{}, *caption_{}, *details_{};
 };
 
+void Shown::paint(InfoBand &details_band, InfoBand &clock_band, const std::string &time, const std::string &caption,
+                  const std::string &details) const {
+  details_band.paint(apart ? "" : time, caption, details, right, top);
+  clock_band.paint(apart ? time : "", "", "", clock_right, clock_top);
+}
+
 // The tile: one photo over the whole card, the details the person chose on a soft band in a corner. Home Assistant's
 // slideshow sensor says which photo (its state is the address); a change slides the old one away and the new one in. A
 // tap, and the tile's own seconds between photos, press the sensor's next_button, so Home Assistant picks another.
@@ -170,7 +189,11 @@ class SlideshowTile : public tessera::Tile {
     width_ = c.width;
     height_ = c.height;
     contain_ = std::string(c.options["fit"] | "cover") == "contain";
-    slide_ = c.options["slide"] | true;
+    // How the next photo comes: slides in from the right ("left"), from the left ("right"), or at once ("none"). A tile
+    // set up before 0.5.0 may still have the old toggle `slide` off: that is "none".
+    const std::string transition = c.options["transition"] | "left";
+    const bool old_off = c.options["slide"].is<bool>() && !c.options["slide"].as<bool>() && c.options["transition"].isNull();
+    slide_dx_ = old_off || transition == "none" ? 0 : (transition == "right" ? 1 : -1);
     shown_opts_.read(c.options, false);
     // Seconds between photos as this screen counts them; 0 leaves the pace to Home Assistant.
     const int every = c.options["interval"] | 0;
@@ -182,6 +205,7 @@ class SlideshowTile : public tessera::Tile {
       lv_obj_set_pos(place_, 0, 0);
       // The band: the card's colour, a little see-through, over the photo.
       band_.make(c.parent, width_, height_, Font::TITLE, theme::CARD, LV_OPA_70, ui::px(6), ui::px(6));
+      clock_band_.make(c.parent, width_, height_, Font::TITLE, theme::CARD, LV_OPA_70, ui::px(6), ui::px(6));
     }
     // What the tile says while there is no photo to show (or the board shows no pictures at all).
     message_ = ui::text(c.parent, Font::BODY, theme::MUTED);
@@ -198,7 +222,7 @@ class SlideshowTile : public tessera::Tile {
   void on_tick(uint32_t epoch) override {
     if (!place_) return;
     if (!(photo_.address == shown_)) {
-      if (slide_ && !shown_.empty() && !slid_) ui::slide_pictures(-width_, 400);
+      if (slide_dx_ && !shown_.empty() && !slid_) ui::slide_pictures(slide_dx_ * width_, 400);
       ui::set_picture(place_, roomy::plain(photo_.address), contain_ ? tessera::Fit::CONTAIN : tessera::Fit::COVER);
       shown_ = photo_.address;
       slid_ = false;
@@ -215,14 +239,14 @@ class SlideshowTile : public tessera::Tile {
     }
     ui::set_text(message_, photo_.wait.empty() ? "" : plugin_->text(photo_.wait.c_str()));
     const bool any = !photo_.address.empty();
-    band_.paint(any && shown_opts_.clock && epoch ? tessera::clock_text(epoch) : "",
-                any && shown_opts_.caption ? roomy::plain(photo_.caption) : "",
-                any ? shown_opts_.details(photo_) : "", shown_opts_.right, shown_opts_.top);
+    shown_opts_.paint(band_, clock_band_, any && shown_opts_.clock && epoch ? tessera::clock_text(epoch) : "",
+                      any && shown_opts_.caption ? roomy::plain(photo_.caption) : "",
+                      any ? shown_opts_.details(photo_) : "");
   }
 
   void on_tap() override {
-    if (photo_.press_next() && place_ && slide_ && !shown_.empty() && !slid_) {
-      ui::slide_pictures(-width_, 300);   // away at once; the next photo comes in when Home Assistant has picked it
+    if (photo_.press_next() && place_ && slide_dx_ && !shown_.empty() && !slid_) {
+      ui::slide_pictures(slide_dx_ * width_, 300);   // away at once; the next photo comes in when Home Assistant has picked it
       slid_ = true;
     }
   }
@@ -230,17 +254,19 @@ class SlideshowTile : public tessera::Tile {
   void on_theme() override {
     ui::set_color(message_, theme::MUTED);
     band_.recolour(theme::CARD);
+    clock_band_.recolour(theme::CARD);
   }
 
  private:
   const tessera::Plugin *plugin_;
   int width_ = 0, height_ = 0;
-  bool contain_ = false, slide_ = true, slid_ = false;
+  bool contain_ = false, slid_ = false;
+  int slide_dx_ = -1;   // -1 slides the photo away to the left, 1 to the right, 0 not at all
   uint32_t interval_ = 0, since_ = 0;
   Shown shown_opts_;
   PhotoInfo photo_;
   tessera::Text shown_;
-  InfoBand band_;
+  InfoBand band_, clock_band_;
   lv_obj_t *place_{}, *message_{};
 };
 
@@ -270,6 +296,7 @@ class SlideshowSaver : public tessera::Saver {
     lv_obj_set_style_text_align(message_, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_pos(message_, ui::mm(4), (height_ - 2 * ui::line_height(Font::BODY)) / 2);
     band_.make(c.parent, width_, height_, Font::HEADLINE, theme::CAMERA_PAGE, LV_OPA_50, ui::mm(4), ui::mm(2));
+    clock_band_.make(c.parent, width_, height_, Font::HEADLINE, theme::CAMERA_PAGE, LV_OPA_50, ui::mm(4), ui::mm(2));
   }
 
   void on_state(JsonObjectConst data) override { photo_.read(data); }
@@ -290,9 +317,9 @@ class SlideshowSaver : public tessera::Saver {
     const char *wait = !place_ ? "no_pictures" : photo_.wait.c_str();
     ui::set_text(message_, *wait ? plugin_->text(wait) : "");
     const bool any = !photo_.address.empty();
-    band_.paint(shown_opts_.clock && epoch ? tessera::clock_text(epoch) : "",
-                any && shown_opts_.caption ? roomy::plain(photo_.caption) : "",
-                any ? shown_opts_.details(photo_) : "", shown_opts_.right, shown_opts_.top);
+    shown_opts_.paint(band_, clock_band_, shown_opts_.clock && epoch ? tessera::clock_text(epoch) : "",
+                      any && shown_opts_.caption ? roomy::plain(photo_.caption) : "",
+                      any ? shown_opts_.details(photo_) : "");
   }
 
  private:
@@ -303,7 +330,7 @@ class SlideshowSaver : public tessera::Saver {
   Shown shown_opts_;
   PhotoInfo photo_;
   tessera::Text shown_;
-  InfoBand band_;
+  InfoBand band_, clock_band_;
   lv_obj_t *place_{}, *message_{};
 };
 
@@ -314,21 +341,12 @@ class SlideshowSaver : public tessera::Saver {
 class CaptionSaver : public tessera::Saver {
  public:
   void show(const tessera::SaverContext &c) override {
-    width_ = c.width;
-    height_ = c.height;
     // An option the person never touched may be missing: read each with its default.
-    const char *corner = c.options["corner"] | "bottom_left";
-    right_ = std::string(corner).find("right") != std::string::npos;
-    top_ = std::string(corner).rfind("top", 0) == 0;
-    clock_ = c.options["time"] | false;
+    shown_opts_.read(c.options, false);
     numbers_ = c.options["numbers"] | true;
     title_ = c.options["title"] | "";
-    // The band, over the photo, and its two lines.
-    band_ = ui::block(c.parent, theme::CAMERA_PAGE);
-    lv_obj_set_style_bg_opa(band_, LV_OPA_50, 0);
-    lv_obj_add_flag(band_, LV_OBJ_FLAG_HIDDEN);
-    time_ = ui::label(band_, Font::HEADLINE, theme::INK);
-    caption_ = ui::label(band_, Font::BODY, theme::INK_SOFT);
+    band_.make(c.parent, c.width, c.height, Font::HEADLINE, theme::CAMERA_PAGE, LV_OPA_50, ui::mm(4), ui::mm(2));
+    clock_band_.make(c.parent, c.width, c.height, Font::HEADLINE, theme::CAMERA_PAGE, LV_OPA_50, ui::mm(4), ui::mm(2));
   }
 
   // The step's contract: picture, mark, index, count, album. Kept here, painted in on_tick.
@@ -336,46 +354,24 @@ class CaptionSaver : public tessera::Saver {
     album_ = data["album"] | "";
     index_ = data["index"] | 0;
     count_ = data["count"] | 0;
-    dirty_ = true;
   }
 
+  // The bands paint only what changed (InfoBand::paint), so this costs nothing in a second without news.
   void on_tick(uint32_t epoch) override {
-    const uint32_t minute = clock_ && epoch ? epoch / 60 : 0;
-    if (!dirty_ && minute == minute_) return;   // nothing new: paint nothing
-    dirty_ = false;
-    minute_ = minute;
     std::string words = title_.empty() ? roomy::plain(album_) : roomy::plain(title_);
     if (numbers_ && index_ > 0 && count_ > 0) {
       if (!words.empty()) words += " \xC2\xB7 ";   // a middle dot between the album and the numbers
       words += std::to_string(index_) + "/" + std::to_string(count_);
     }
-    const std::string time = minute ? tessera::clock_text(epoch) : "";
-    if (words.empty() && time.empty()) {
-      lv_obj_add_flag(band_, LV_OBJ_FLAG_HIDDEN);
-      return;
-    }
-    const int pad = ui::mm(2), edge = ui::mm(4), room = width_ - 2 * edge - 2 * pad;
-    const int th = time.empty() ? 0 : ui::line_height(Font::HEADLINE), ch = words.empty() ? 0 : ui::line_height(Font::BODY);
-    const int tw = time.empty() ? 0 : std::min(ui::text_width(time, Font::HEADLINE), room);
-    const int cw = words.empty() ? 0 : std::min(ui::text_width(words, Font::BODY), room);
-    const int w = std::max(tw, cw) + 2 * pad, h = th + ch + 2 * pad;
-    ui::set_text(time_, time);
-    ui::set_text(caption_, words);
-    lv_obj_set_width(time_, std::max(tw, 1));
-    lv_obj_set_width(caption_, std::max(cw, 1));
-    lv_obj_set_pos(time_, right_ ? w - pad - tw : pad, pad);
-    lv_obj_set_pos(caption_, right_ ? w - pad - cw : pad, pad + th);
-    lv_obj_set_size(band_, w, h);
-    lv_obj_set_pos(band_, right_ ? width_ - edge - w : edge, top_ ? edge : height_ - edge - h);
-    lv_obj_remove_flag(band_, LV_OBJ_FLAG_HIDDEN);
+    shown_opts_.paint(band_, clock_band_, shown_opts_.clock && epoch ? tessera::clock_text(epoch) : "", words, "");
   }
 
  private:
-  int width_ = 0, height_ = 0, index_ = 0, count_ = 0;
-  bool right_ = false, top_ = false, clock_ = false, numbers_ = true, dirty_ = true;
-  uint32_t minute_ = 0;
+  int index_ = 0, count_ = 0;
+  bool numbers_ = true;
+  Shown shown_opts_;
   tessera::Text album_, title_;   // PSRAM first (docs/FIRMWARE_API.md, "Memory")
-  lv_obj_t *band_{}, *time_{}, *caption_{};
+  InfoBand band_, clock_band_;
 };
 
 void PhotoSlideshow::setup() {

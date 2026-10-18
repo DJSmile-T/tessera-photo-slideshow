@@ -56,13 +56,14 @@ Supervisor, which passes `/api/...` on but not the `www` folder (`/local/...`).
    `sensor.slideshow_photo` as its entity. The editor shows the caption only; the photo shows on the screen itself.
 7. In the inspector: **Fit** (cover fills the tile, contain shows the whole photo), what stands over the photo, each on
    or off (**Album and numbers**, **Photo name**, **Place**, **Date taken**, **Time**) and the **Corner** it stands in,
-   **Slide**, and **Seconds between photos** (0 leaves the pace to Home Assistant; otherwise the screen asks for the
+   the **Transition** (slide to the left, to the right, or none), and **Seconds between photos** (0 leaves the pace to Home Assistant; otherwise the screen asks for the
    next photo every so many seconds, at least 5). The place and the date taken come from Immich (below); a photo of a
    folder without Immich has its file name as its name, and no place or date.
 8. For a tap to give the next photo, allow the screen to perform Home Assistant actions: Settings → Devices &
    services → ESPHome → the screen → Configure.
 
-Without seconds on the tile, the photo changes every `input_number.slideshow_interval` minutes; set that to 0 when the
+The order is `input_select.slideshow_order`: shuffled, by name, or by the date taken (from Immich). Without seconds on
+the tile, the photo changes every `input_number.slideshow_interval` minutes; set that to 0 when the
 tile keeps the pace, so Home Assistant changes the photo only when a screen asks. The album in the caption is
 `input_text.slideshow_album`. Both are in Home Assistant: change them without building the screen. With several
 screens on one sensor, every screen shows the same photo, and each screen that keeps a pace moves them all on.

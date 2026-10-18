@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0
+- **Transition** on the tile: the old photo slides away to the left (as before) or to the right, or the next one is
+  there at once. It takes the place of the Slide toggle; a tile with Slide off gets None.
+- **Where the time stands**, on the tile, in the screensaver step and on the Photos face: with the details, or in a
+  corner of its own (Time stands).
+- **Order of the slideshow** in Home Assistant (`input_select.slideshow_order`): shuffled, by name, or by the date
+  taken (from Immich). Take the new homeassistant/photo_slideshow.yaml along. The caption's numbers follow the order.
+- Known: the screensaver step of its own shows no photo with Tessera 0.4.89 (the app does not tell the screen the
+  step's entity, so it refuses the step's picture); its details do show. Until Tessera fixes it, use Tessera's own
+  Photos step with this plugin's caption face.
+
 ## 0.4.0
 - **Choose what stands over the photo**, on the tile and in the screensaver, each on or off: the album and numbers
   (Holiday · 12/148), the photo's name, the place it was taken (Granada, Spain), the date it was taken, and the time.
